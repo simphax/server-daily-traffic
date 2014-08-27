@@ -20,7 +20,7 @@ module.exports = {
           toDate.setDate(toDate.getDate()+1);//Next day 00:00 in local time
           
           //console.log("Finding records between "+fromDate+" and "+toDate);
-          TrafficRecord.find({ periodStart: {date: { '>=': fromDate, '<': toDate }}, sort: 'periodStart.date DESC' }, function(err,data) {
+          TrafficRecord.find({ periodStart_date: { '>=': fromDate, '<': toDate }, sort: 'periodStart_date DESC' }, function(err,data) {
             if(err) return callback(err);
             
             if(data.length > 0) {
@@ -29,12 +29,12 @@ module.exports = {
               previousRecord = data[0];
               
               newRecord = {
-                periodStart: previousRecord.periodStart,
-                periodEnd: {
-                  dataIn: 0,//Will be filled in later
-                  dataOut: 0,//Will be filled in later
-                  date: new Date() //now
-                }
+                periodStart_dataIn: previousRecord.periodStart_dataIn,
+                periodStart_dataOut: previousRecord.periodStart_dataOut,
+                periodStart_date: previousRecord.periodStart_date,
+                periodEnd_dataIn: 0,//Will be filled in later
+                periodEnd_dataOut: 0,//Will be filled in later
+                periodEnd_date: new Date() //now
               };
               return callback();
             } else {
@@ -42,17 +42,13 @@ module.exports = {
               var now = new Date();
 
               previousRecord = {
-                periodStart: {
-                  dataIn: 0,
-                  dataOut: 0,
-                  date: now
-                },
-                periodEnd: {
-                  dataIn: 0,
-                  dataOut: 0,
-                  date: now
-                }
-              };
+                periodStart_dataIn: 0,
+                periodStart_dataOut: 0,
+                periodStart_date: now,
+                periodEnd_dataIn: 0,
+                periodEnd_dataOut: 0,
+                periodEnd_date: now
+                };
               newRecord = new Object(previousRecord);
 
               console.log("Could not find any records between "+fromDate+" and "+toDate);
@@ -69,9 +65,9 @@ module.exports = {
 
             //console.log(stdout);
 
-            newRecord.periodEnd.dataIn = parseInt(stdout.split(':').pop());
+            newRecord.periodEnd_dataIn = parseInt(stdout.split(':').pop());
 
-            if(previousRecord.periodEnd.dataIn > newRecord.periodEnd.dataIn) {
+            if(previousRecord.periodEnd_dataIn > newRecord.periodEnd_dataIn) {
               //Previous dataIn is larger than the new value. This probably means that the server or network has been reset.
               //Insert a new period instead
               console.log("Previous dataIn is larger than the new value. This probably means that the server or network has been reset.");
@@ -90,9 +86,9 @@ module.exports = {
 
             //console.log(stdout);
 
-            newRecord.periodEnd.dataOut = parseInt(stdout.split(':').pop());
+            newRecord.periodEnd_dataOut = parseInt(stdout.split(':').pop());
             
-            if(previousRecord.periodEnd.dataOut > newRecord.periodEnd.dataOut) {
+            if(previousRecord.periodEnd_dataOut > newRecord.periodEnd_dataOut) {
               //Previous dataOut is larger than the new value. This usually means that the server or network has been reset.
               //Insert a new period instead
               console.log("Previous dataOut is larger than the new value. This probably means that the server or network has been reset.");
@@ -110,11 +106,13 @@ module.exports = {
           return console.log("Could not get data with snmp: "+err);
         }
         if(results.indexOf('newPeriod') != -1){
-          newRecord.periodStart = new Object(newRecord.periodEnd);
+          newRecord.periodStart_dataIn = newRecord.periodEnd_dataIn;
+          newRecord.periodStart_dataOut = newRecord.periodEnd_dataOut;
+          newRecord.periodStart_date = newRecord.periodEnd_date;
 
           TrafficRecord.create(newRecord).exec(function createCB(err,created){
             if(err) return console.log("Could not save record: "+err);
-            console.log("Created new record with id "+created.id+" starting at "+created.periodStart.date);
+            console.log("Created new record with id "+created.id+" starting at "+created.periodStart_date);
             //console.log(created);
             
             return repeater();
@@ -123,7 +121,7 @@ module.exports = {
         else {
           TrafficRecord.update({id: previousRecord.id},newRecord).exec(function updateCB(err,updated){
             if(err) return console.log("Could not save record: "+err);
-            console.log("Updated record "+updated[0].id+" with data from "+updated[0].periodStart.date+" and "+updated[0].periodEnd.date);
+            console.log("Updated record "+updated[0].id+" with data from "+updated[0].periodStart_date+" and "+updated[0].periodEnd_date);
             //console.log(updated);
             
             return repeater();
