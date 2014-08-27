@@ -1,0 +1,54 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<link href="//maxcdn.bootstrapcdn.com/bootswatch/3.2.0/superhero/bootstrap.min.css" rel="stylesheet">
+	<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Server Status</title>
+	<!--STYLES-->
+<link rel="stylesheet" href="/styles/importer.css">
+<!--STYLES END-->
+	
+	<style type="text/css">
+		body {
+			background: #18C518;
+			text-align: center;
+		}
+		#traffic-date {
+			color: #fff;
+			opacity: 0.8;
+			font-size: 34px;
+			display: block;
+		}
+		#traffic-value {
+			color: #fff;
+			font-size: 80px;
+			display: block;
+		}
+	</style>
+</head>
+<body>
+
+	<span id="traffic-date"></span>
+	<span id="traffic-value"></span>
+	
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+	<!--SCRIPTS-->
+<script src="/js/dependencies/sails.io.js"></script>
+<!--SCRIPTS END-->
+	<script>
+		$(document).ready(function() {
+			$.ajax({url:"/api/v1/traffic",success:function(result){
+				
+				var date = new Date(result.since);
+				var timeStr = ('0' + date.getHours()).slice(-2)+":"+('0' + date.getMinutes()).slice(-2);
+				var megabytes = Math.round(result.totalTraffic/1000000); //2 decimal accuracy
+				
+				$("#traffic-date").html("Total traffic since "+timeStr+" today");
+				$("#traffic-value").html(megabytes + " MB");
+			}});
+		});
+	</script>
+</body>
+</html>
