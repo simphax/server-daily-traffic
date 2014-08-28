@@ -31,7 +31,7 @@ module.exports = {
               newRecord = {
                 periodStart_dataIn: previousRecord.periodStart_dataIn,
                 periodStart_dataOut: previousRecord.periodStart_dataOut,
-                periodStart_date: previousRecord.periodStart_date,
+                periodStart_date: new Date(previousRecord.periodStart_date),
                 periodEnd_dataIn: 0,//Will be filled in later
                 periodEnd_dataOut: 0,//Will be filled in later
                 periodEnd_date: new Date() //now
@@ -108,8 +108,12 @@ module.exports = {
         if(results.indexOf('newPeriod') != -1){
           newRecord.periodStart_dataIn = newRecord.periodEnd_dataIn;
           newRecord.periodStart_dataOut = newRecord.periodEnd_dataOut;
-          newRecord.periodStart_date = newRecord.periodEnd_date;
-
+          newRecord.periodStart_date = new Date(newRecord.periodEnd_date);
+          
+          /////Workaround for sails disk database
+          //newRecord.periodEnd_date = newRecord.periodEnd_date.toJSON();
+          //newRecord.periodStart_date = newRecord.periodStart_date.toJSON();
+          /////
           TrafficRecord.create(newRecord).exec(function createCB(err,created){
             if(err) return console.log("Could not save record: "+err);
             console.log("Created new record with id "+created.id+" starting at "+created.periodStart_date);
@@ -119,6 +123,10 @@ module.exports = {
           });
         }
         else {
+          /////Workaround for sails disk database
+          //newRecord.periodEnd_date = newRecord.periodEnd_date.toJSON();
+          //newRecord.periodStart_date = newRecord.periodStart_date.toJSON();
+          /////
           TrafficRecord.update({id: previousRecord.id},newRecord).exec(function updateCB(err,updated){
             if(err) return console.log("Could not save record: "+err);
             console.log("Updated record "+updated[0].id+" with data from "+updated[0].periodStart_date+" and "+updated[0].periodEnd_date);
