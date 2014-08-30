@@ -7,7 +7,10 @@
 
 module.exports = {
   view: function(req, res, next) {
-    
+    var date = new Date(); 
+    res.view('homepage',{
+
+    });
   }
 };
 

@@ -39,15 +39,21 @@
 <!--SCRIPTS END-->
 	<script>
 		$(document).ready(function() {
-			$.ajax({url:"/api/v1/traffic",success:function(result){
-				
-				var date = new Date(result.since);
-				var timeStr = ('0' + date.getHours()).slice(-2)+":"+('0' + date.getMinutes()).slice(-2);
-				var megabytes = Math.round(result.totalTraffic/1000000); //2 decimal accuracy
-				
-				$("#traffic-date").html("Total traffic since "+timeStr+" today");
-				$("#traffic-value").html(megabytes + " MB");
-			}});
+
+			function dataLoop(){
+				$.ajax({url:"/api/v1/traffic",success:function(result){
+					
+					var date = new Date(result.from);
+					var timeStr = ('0' + date.getHours()).slice(-2)+":"+('0' + date.getMinutes()).slice(-2);
+					var megabytes = Math.round(result.totalTraffic/1000000); //2 decimal accuracy
+					
+					$("#traffic-date").html("Total traffic since "+timeStr+" today");
+					$("#traffic-value").html(megabytes + " MB");
+
+					setTimeout(dataLoop,20000);
+				}});
+			}
+			dataLoop();
 		});
 	</script>
 </body>

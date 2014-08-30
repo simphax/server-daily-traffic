@@ -16,14 +16,32 @@ module.exports = {
       fromDate.setMilliseconds(0);
       
       var toDate = new Date();
+      toDate.setHours(0); //Local time
+      toDate.setMinutes(0);
+      toDate.setSeconds(0);
+      toDate.setMilliseconds(0);
+      toDate.setDate(toDate.getDate()+1);
+
+      if(req.param('year')) {
+        fromDate.setFullYear(+req.param('year'));
+        toDate.setFullYear(+req.param('year'));
+      }
+
+      if(req.param('month')) {
+        fromDate.setMonth((+req.param('month'))-1);
+        toDate.setMonth((+req.param('month'))-1);
+      }
+
+      if(req.param('day')) {
+        fromDate.setDate(+req.param('day'));
+        toDate.setDate(+req.param('day')+1);
+      }
+
 
       TrafficRecord.getTotalTrafficBetween(fromDate,toDate,function(err,traffic){
         if(err) return res.serverError(err);
         
-        return res.json({
-          totalTraffic: traffic.totalTraffic,
-          since: traffic.from,
-        });
+        return res.json(traffic);
       });
 
 	}

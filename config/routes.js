@@ -40,6 +40,11 @@ module.exports.routes = {
     controller: 'trafficWatch',
     action: 'api_traffic'
   },
+
+  '/api/v1/traffic/:year/:month/:day': {
+    controller: 'trafficWatch',
+    action: 'api_traffic'
+  },
   /***************************************************************************
   *                                                                          *
   * Custom routes here...                                                    *

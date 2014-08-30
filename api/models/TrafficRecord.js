@@ -20,7 +20,7 @@ module.exports = {
   
   //callback(err,total traffic in bytes)
   getTotalTrafficBetween: function(fromDate, toDate, callback) {
-    //console.log("Querying "+fromDate+" and"+toDate);
+    console.log("Reading records from "+fromDate+" to "+toDate);
     TrafficRecord.find({ 
       periodStart_date: { '>=': fromDate },
       periodEnd_date: { '<=': toDate },
@@ -29,14 +29,18 @@ module.exports = {
       if(err) return callback(err);
       if(data.length<=0) return callback({message: "No records registered for this period"});
 		  //console.log(data);
-      var totalTraffic = 0;
+      var trafficUp = 0;
+      var trafficDown = 0;
       
       data.forEach(function(record){
-        totalTraffic += (record.periodEnd_dataIn - record.periodStart_dataIn) + (record.periodEnd_dataOut - record.periodStart_dataOut);
+        trafficUp += (record.periodEnd_dataOut - record.periodStart_dataOut);
+        trafficDown += (record.periodEnd_dataIn - record.periodStart_dataIn);
       });
       
       callback(null,{
-          totalTraffic: totalTraffic,
+          totalTraffic: trafficUp+trafficDown,
+          trafficUp: trafficUp,
+          trafficDown: trafficDown,
           from: data[0].periodStart_date,
           to: data[data.length-1].periodEnd_date
       });
