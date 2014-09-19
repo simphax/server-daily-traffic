@@ -36,14 +36,19 @@ module.exports.routes = {
     view: 'homepage'
   },
 
-  '/api/v1/traffic': {
+  '/api/v1/traffic/today': {
     controller: 'trafficWatch',
-    action: 'api_traffic'
+    action: 'api_traffic_day'
   },
 
   '/api/v1/traffic/:year/:month/:day': {
     controller: 'trafficWatch',
-    action: 'api_traffic'
+    action: 'api_traffic_day'
+  },
+  
+  '/api/v1/traffic': {
+    controller: 'trafficWatch',
+    action: 'api_traffic_days'
   },
   /***************************************************************************
   *                                                                          *

@@ -32,16 +32,93 @@
 	<span id="traffic-date"></span>
 	<span id="traffic-value"></span>
 	
+	<canvas id="chart-canvas" width="800" height="300"></canvas>
+	
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 	<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 	<!--SCRIPTS-->
 <script src="/js/dependencies/sails.io.js"></script>
+<script src="/js/dependencies/Chart.min.js"></script>
 <!--SCRIPTS END-->
+  
+<script src="/common/DateUtils.js"></script>
 	<script>
 		$(document).ready(function() {
 
+            var fromDate = sm.DateUtils.getMonthStart();
+          
+            var toDate = new Date();
+          
+            var fromDateStr = fromDate.getUTCFullYear()+'-'+(fromDate.getUTCMonth()+1)+'-'+fromDate.getUTCDate();
+            var toDateStr = toDate.getUTCFullYear()+'-'+(toDate.getUTCMonth()+1)+'-'+toDate.getUTCDate();
+          	
+			var ctx = $("#chart-canvas")[0].getContext('2d');
+			var myBarChart = null;
+			
+			var trafficUrl = "/api/v1/traffic?from="+fromDateStr+"&to="+toDateStr;
+			console.log(trafficUrl);
+			
+            $.ajax({url:trafficUrl,success:function(result){
+				
+				var labels = [];
+				var traffics = [];
+				
+				result.forEach(function(traffic){
+					var trafficFromDate = new Date(traffic.from);
+					labels.push(trafficFromDate.getDate());
+					var megabytes = Math.round(traffic.totalTraffic/1000000);
+					traffics.push(megabytes);
+				});
+				
+				var data = {
+					labels: labels,
+					datasets: [
+						{
+							label: "My First dataset",
+							fillColor: "rgba(220,220,220,0.5)",
+							strokeColor: "rgba(220,220,220,0.8)",
+							highlightFill: "rgba(220,220,220,0.75)",
+							highlightStroke: "rgba(220,220,220,1)",
+							data: traffics
+						}
+					]
+				};
+
+				myBarChart = new Chart(ctx).Line(data, {
+					//Boolean - Whether the scale should start at zero, or an order of magnitude down from the lowest value
+					scaleBeginAtZero : true,
+
+					//Boolean - Whether grid lines are shown across the chart
+					scaleShowGridLines : true,
+					 scaleLineColor: "rgba(255,255,255,0.5)",
+	scaleFontColor: "rgba(255,255,255,0.8)",
+					//String - Colour of the grid lines
+					scaleGridLineColor : "rgba(255,255,255,0.2)",
+
+					//Number - Width of the grid lines
+					scaleGridLineWidth : 1,
+
+					//Boolean - If there is a stroke on each bar
+					barShowStroke : true,
+
+					//Number - Pixel width of the bar stroke
+					barStrokeWidth : 2,
+
+					//Number - Spacing between each of the X value sets
+					barValueSpacing : 5,
+
+					//Number - Spacing between data sets within X values
+					barDatasetSpacing : 1,
+
+					tooltipTemplate: "<\%if (label){\%><\%=label\%>: <\%}\%><\%= value \%> MB"
+
+				});
+				
+				setTimeout(dataLoop,10);
+            }});
+			
 			function dataLoop(){
-				$.ajax({url:"/api/v1/traffic",success:function(result){
+				$.ajax({url:"/api/v1/traffic/today",success:function(result){
 					
 					var date = new Date(result.from);
 					var timeStr = ('0' + date.getHours()).slice(-2)+":"+('0' + date.getMinutes()).slice(-2);
@@ -49,11 +126,19 @@
 					
 					$("#traffic-date").html("Total traffic since "+timeStr+" today");
 					$("#traffic-value").html(megabytes + " MB");
+					console.log(myBarChart);
+					
+					var lastDataset = myBarChart.datasets[myBarChart.datasets.length-1];
+					var lastBar = lastDataset.bars[lastDataset.bars.length-1];
+					
+					lastBar.value = megabytes;
 
+					myBarChart.update();
+					
 					setTimeout(dataLoop,20000);
 				}});
 			}
-			dataLoop();
+			
 		});
 	</script>
 </body>

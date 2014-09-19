@@ -5,9 +5,12 @@
  * @help        :: See http://links.sailsjs.org/docs/controllers
  */
 
+var DateUtils = require('../../assets/common/DateUtils');
+
 module.exports = {
 
-	api_traffic: function(req, res, next) {
+	//Total traffic for a day
+	api_traffic_day: function(req, res, next) {
 
       var fromDate = new Date();
       fromDate.setHours(0); //Local time
@@ -43,6 +46,46 @@ module.exports = {
         
         return res.json(traffic);
       });
+
+	},
+	
+	//Should return a list of all days since param "since"
+	api_traffic_days: function(req, res, next) {
+
+      var fromDate = new Date(req.param('from'));
+      
+      
+      var toDate = new Date(req.param('to'));
+      
+      
+      var dayList = DateUtils.getDayList(fromDate, toDate);
+
+      var trafficResults = [];
+      
+      async.eachSeries(dayList, function(day, cb) {
+        day.setHours(0); //Local time
+        day.setMinutes(0);
+        day.setSeconds(0);
+        day.setMilliseconds(0);
+        
+        var dayEnd = new Date(day);
+        dayEnd.setDate(day.getDate()+1);
+        
+        TrafficRecord.getTotalTrafficBetween(day, dayEnd, function(err,traffic){
+          if(!err && traffic) {
+            trafficResults.push(traffic);
+          }
+          return cb();
+        });
+        
+      }, function(err){
+        console.log(trafficResults);
+        console.log(err);
+        if( err ) return res.serverError("Something went wrong: ",err);
+        return res.json(trafficResults);
+      });
+
+      
 
 	}
 	
