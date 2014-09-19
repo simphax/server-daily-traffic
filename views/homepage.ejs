@@ -128,10 +128,7 @@
 					$("#traffic-value").html(megabytes + " MB");
 					console.log(myBarChart);
 					
-					var lastDataset = myBarChart.datasets[myBarChart.datasets.length-1];
-					var lastBar = lastDataset.bars[lastDataset.bars.length-1];
-					
-					lastBar.value = megabytes;
+					var lastBar = myBarChart.datasets[0].points[myBarChart.datasets[0].points.length-1].value = megabytes;
 
 					myBarChart.update();
 					
